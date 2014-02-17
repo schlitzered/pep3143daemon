@@ -34,9 +34,6 @@ class PidFile(object):
         try:
             self.pidfile.close()
             os.remove(self._pidfile)
-        except IOError as err:
-            if err.errno != 9:
-                raise
         except OSError as err:
             if err.errno != 2:
                 raise
