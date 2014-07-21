@@ -1,14 +1,11 @@
 __author__ = 'schlitzer'
 
 from unittest import TestCase
-from unittest.mock import Mock, MagicMock, call, patch
+from unittest.mock import Mock, call, patch
 import pep3143daemon.PidFile
 
-#import sys
-#sys.path.append('/home/schlitzer/PycharmProjects/pep-3143-daemon/pep3143daemon')
 
-
-class TestPidFile(TestCase):
+class TestPidFileUnit(TestCase):
     def setUp(self):
         atexitpatcher = patch('pep3143daemon.PidFile.atexit', autospeck=True)
         self.atexit_mock = atexitpatcher.start()
@@ -29,7 +26,7 @@ class TestPidFile(TestCase):
 
     def test___init__(self):
         pep3143daemon.PidFile.PidFile.__init__(self.mockpidfile, 'test.pid')
-        self.assertIsNone(self.mockpidfile.pidfile )
+        self.assertIsNone(self.mockpidfile.pidfile)
         self.assertEqual(self.mockpidfile._pidfile, 'test.pid')
 
 
@@ -39,6 +36,7 @@ class TestPidFile(TestCase):
 
         self.open_mock.assert_called_with('test.pid', 'w+')
 
+        self.assertEqual(self.mockpidfile._pidfile, 'test.pid')
         self.fcntl_mock.flock.asert_called_with(
             self.mockpidfile.pidfile.fileno(),
             self.fcntl_mock.LOCK_EX | self.fcntl_mock.LOCK_NB)
@@ -48,12 +46,22 @@ class TestPidFile(TestCase):
         self.mockpidfile.pidfile.fileno.assert_has_calls([
             call(),
             call()
-            ]
+        ]
         )
-        self.mockpidfile.pidfile.write.assert_called_with(str(self.os_mock.getpid())+'\n')
+        self.mockpidfile.pidfile.write.assert_called_with(str(self.os_mock.getpid()) + '\n')
         self.mockpidfile.pidfile.flush.assert_called_with()
 
         self.atexit_mock.register.assert_called_with(self.mockpidfile.release)
+
+    def test_acquire_flock_fail(self):
+        self.mockpidfile._pidfile = 'test.pid'
+        self.fcntl_mock.flock.side_effect = IOError()
+        self.assertRaises(SystemExit, pep3143daemon.PidFile.PidFile.acquire, (self.mockpidfile))
+
+    def test_acquire_open_fail(self):
+        self.mockpidfile._pidfile = 'test.pid'
+        self.open_mock.side_effect = IOError()
+        self.assertRaises(SystemExit, pep3143daemon.PidFile.PidFile.acquire, (self.mockpidfile))
 
     def test_release(self):
         self.mockpidfile._pidfile = 'test.pid'
