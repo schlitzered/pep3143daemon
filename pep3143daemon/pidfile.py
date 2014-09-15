@@ -1,5 +1,6 @@
+# -*- coding: utf-8 -*-
 """
-Simple PidFile Module for a pep3143 daemon implementation
+Simple PidFile Module for a pep3143 daemon implementation.
 
 """
 __author__ = 'schlitzer'
@@ -12,9 +13,14 @@ import os
 
 class PidFile(object):
     """
-    PidFile object for PEP 3128 Daemon
+    PidFile implementation for PEP 3143 Daemon.
 
-    :param pidfile: filename to be used as pidfile, including path
+    This Class can also be used with pythons 'with'
+    statement.
+
+    :param pidfile:
+        filename to be used as pidfile, including path
+    :type pidfile: str
     """
 
     def __init__(self, pidfile):
@@ -42,10 +48,11 @@ class PidFile(object):
         and register the release with atexit.
 
 
-        :raise SystemExit:
+        :return: None
+        :raise: SystemExit
         """
         try:
-            self.pidfile = open(self._pidfile, "w+")
+            self.pidfile = open(self._pidfile, "a")
         except IOError as err:
             raise SystemExit(err)
         try:
@@ -62,7 +69,7 @@ class PidFile(object):
         Close and delete the Pidfile.
 
 
-        :raise:
+        :return: None
         """
         try:
             self.pidfile.close()

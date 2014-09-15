@@ -2,61 +2,61 @@ __author__ = 'schlitzer'
 
 from unittest import TestCase
 from unittest.mock import Mock, MagicMock, PropertyMock, call, patch
-import pep3143daemon.Daemon
+import pep3143daemon.daemon
 import errno
 import sys
 
 
 class TestDaemonContextUnit(TestCase):
     def setUp(self):
-        parentisinetpatcher = patch('pep3143daemon.Daemon.parentisinit', autospeck=True)
-        self.parentisinet_mock = parentisinetpatcher.start()
+        parent_is_inetpatcher = patch('pep3143daemon.daemon.parent_is_init', autospeck=True)
+        self.parent_is_inet_mock = parent_is_inetpatcher.start()
 
-        parentisinitpatcher = patch('pep3143daemon.Daemon.parentisinet', autospeck=True)
-        self.parentisinit_mock = parentisinitpatcher.start()
+        parent_is_initpatcher = patch('pep3143daemon.daemon.parent_is_inet', autospeck=True)
+        self.parent_is_init_mock = parent_is_initpatcher.start()
 
-        defaultsignalmappatcher = patch('pep3143daemon.Daemon.defaultsignalmap', autospeck=True)
-        self.default_signal_map_mock = defaultsignalmappatcher.start()
+        default_signal_mappatcher = patch('pep3143daemon.daemon.default_signal_map', autospeck=True)
+        self.default_signal_map_mock = default_signal_mappatcher.start()
 
-        detachrequiredpatcher = patch('pep3143daemon.Daemon.detachrequired', autospeck=True)
-        self.detachrequiredpatcher_mock = detachrequiredpatcher.start()
+        detach_requiredpatcher = patch('pep3143daemon.daemon.detach_required', autospeck=True)
+        self.detach_requiredpatcher_mock = detach_requiredpatcher.start()
 
-        ospatcher = patch('pep3143daemon.Daemon.os', autospeck=True)
+        ospatcher = patch('pep3143daemon.daemon.os', autospeck=True)
         self.os_mock = ospatcher.start()
         self.os_mock.getuid.return_value = 12345
         self.os_mock.getgid.return_value = 54321
 
-        resourcepatcher = patch('pep3143daemon.Daemon.resource', autospeck = True)
+        resourcepatcher = patch('pep3143daemon.daemon.resource', autospeck = True)
         self.resource_mock = resourcepatcher.start()
         self.resource_mock.RLIMIT_NOFILE = 2048
         self.resource_mock.RLIM_INFINITY = True
 
-        signalpatcher = patch('pep3143daemon.Daemon.signal', autospeck=True)
+        signalpatcher = patch('pep3143daemon.daemon.signal', autospeck=True)
         self.signal_mock = signalpatcher.start()
         self.signal_mock.SIGTERM.return_value=15
 
-        socketpatcher = patch('pep3143daemon.Daemon.socket', autospeck=True)
+        socketpatcher = patch('pep3143daemon.daemon.socket', autospeck=True)
         self.socket_mock = socketpatcher.start()
 
-        syspatcher = patch('pep3143daemon.Daemon.sys', autospeck=False)
+        syspatcher = patch('pep3143daemon.daemon.sys', autospeck=False)
         self.sys_mock = syspatcher.start()
 
         self.addCleanup(patch.stopall)
 
-        self.daemoncontext = pep3143daemon.Daemon.DaemonContext()
+        self.daemoncontext = pep3143daemon.daemon.DaemonContext()
         self.mockdaemoncontext = Mock()
 
 # Test DaemonContext.__init__()
     def test___init__defaultargs(self):
-        pep3143daemon.Daemon.DaemonContext.__init__(self.mockdaemoncontext)
+        pep3143daemon.daemon.DaemonContext.__init__(self.mockdaemoncontext)
         self.assertIsNone(self.mockdaemoncontext.files_preserve)
         self.assertIsNone(self.mockdaemoncontext.chroot_directory)
         self.assertEqual(self.mockdaemoncontext.working_directory, '/')
         self.assertEqual(self.mockdaemoncontext.umask, 0)
         self.assertIsNone(self.mockdaemoncontext.pidfile)
-        detach_required = pep3143daemon.Daemon.detachrequired()
+        detach_required = pep3143daemon.daemon.detach_required()
         self.assertEqual(self.mockdaemoncontext.detach_process, detach_required)
-        signal_map = pep3143daemon.Daemon.defaultsignalmap()
+        signal_map = pep3143daemon.daemon.default_signal_map()
         self.assertEqual(self.mockdaemoncontext.signal_map, signal_map)
         self.assertEqual(self.mockdaemoncontext.uid, self.os_mock.getuid())
         self.os_mock.getuid.assert_called_with()
@@ -83,7 +83,7 @@ class TestDaemonContextUnit(TestCase):
         stdout = Mock()
         stderr = Mock()
 
-        pep3143daemon.Daemon.DaemonContext.__init__(
+        pep3143daemon.daemon.DaemonContext.__init__(
             self.mockdaemoncontext,
             files_preserve=files_preserve,
             chroot_directory=chroot_directory,
@@ -114,14 +114,14 @@ class TestDaemonContextUnit(TestCase):
         self.assertEqual(self.mockdaemoncontext.stderr, stderr)
 
     def test___init__chroot_substring_of_workdir(self):
-        pep3143daemon.Daemon.DaemonContext.__init__(
+        pep3143daemon.daemon.DaemonContext.__init__(
             self.mockdaemoncontext,
             working_directory='/foo/bar/baz',
             chroot_directory='/foo/bar')
         self.assertEqual(self.mockdaemoncontext.working_directory, '/foo/bar/baz')
 
     def test___init__chroot_not_substring_of_workdir(self):
-        pep3143daemon.Daemon.DaemonContext.__init__(
+        pep3143daemon.daemon.DaemonContext.__init__(
             self.mockdaemoncontext,
             working_directory='/baz',
             chroot_directory='/foo/bar')
@@ -140,20 +140,20 @@ class TestDaemonContextUnit(TestCase):
 
 # Test DaemonContext._get_signal_handler()
     def test__get_signal_handler_None(self):
-        result = pep3143daemon.Daemon.DaemonContext._get_signal_handler(
+        result = pep3143daemon.daemon.DaemonContext._get_signal_handler(
             self.mockdaemoncontext,
             None)
         self.assertEqual(result, self.signal_mock.SIG_IGN)
 
     def test__get_signal_handler_attribute(self):
-        result = pep3143daemon.Daemon.DaemonContext._get_signal_handler(
+        result = pep3143daemon.daemon.DaemonContext._get_signal_handler(
             self.mockdaemoncontext,
             'terminate')
         self.assertEqual(result, self.mockdaemoncontext.terminate)
 
     def test__get_signal_handler_other(self):
         other = Mock()
-        result = pep3143daemon.Daemon.DaemonContext._get_signal_handler(
+        result = pep3143daemon.daemon.DaemonContext._get_signal_handler(
             self.mockdaemoncontext,
             other)
         self.assertEqual(result, other)
@@ -335,22 +335,22 @@ class TestDaemonContextUnit(TestCase):
 
 class TestDaemonHelperUnit(TestCase):
     def setUp(self):
-        ospatcher = patch('pep3143daemon.Daemon.os', autospeck=True)
+        ospatcher = patch('pep3143daemon.daemon.os', autospeck=True)
         self.os_mock = ospatcher.start()
         self.os_mock.getuid.return_value = 12345
         self.os_mock.getgid.return_value = 54321
 
-        resourcepatcher = patch('pep3143daemon.Daemon.resource', autospeck=True)
+        resourcepatcher = patch('pep3143daemon.daemon.resource', autospeck=True)
         self.resource_mock = resourcepatcher.start()
 
-        signalpatcher = patch('pep3143daemon.Daemon.signal', autospeck=True)
+        signalpatcher = patch('pep3143daemon.daemon.signal', autospeck=True)
         self.signal_mock = signalpatcher.start()
         self.signal_mock.SIGTERM.return_value=15
 
-        socketpatcher = patch('pep3143daemon.Daemon.socket', autospeck=True)
+        socketpatcher = patch('pep3143daemon.daemon.socket', autospeck=True)
         self.socket_mock = socketpatcher.start()
 
-        syspatcher = patch('pep3143daemon.Daemon.sys', autospeck=False)
+        syspatcher = patch('pep3143daemon.daemon.sys', autospeck=False)
         self.sys_mock = syspatcher.start()
 
         self.addCleanup(patch.stopall)
@@ -369,12 +369,12 @@ class TestDaemonHelperUnit(TestCase):
                  call.close(8),
                  call.close(10),
                  call.close(11)]
-        pep3143daemon.Daemon.close_filenos(set((1,2,4,9)))
+        pep3143daemon.daemon.close_filenos(set((1,2,4,9)))
         self.os_mock.assert_has_calls(calls)
 
     def test_close_filenos_maxfd_unlimited(self):
         self.resource_mock.getrlimit.return_value = (12, self.resource_mock.RLIM_INFINITY)
-        pep3143daemon.Daemon.close_filenos(set((1,2,4,9)))
+        pep3143daemon.daemon.close_filenos(set((1,2,4,9)))
         self.assertEqual(self.os_mock.close.call_count, 4092)
 
 # Test default_signal_map()
@@ -385,7 +385,7 @@ class TestDaemonHelperUnit(TestCase):
             self.signal_mock.SIGTTIN: None,
             self.signal_mock.SIGTTOU: None,
             self.signal_mock.SIGTERM: 'terminate'}
-        result = pep3143daemon.Daemon.defaultsignalmap()
+        result = pep3143daemon.daemon.default_signal_map()
         self.assertEqual(result, expected)
 
     def test_default_signal_map_no_SIGTTOU(self):
@@ -394,76 +394,78 @@ class TestDaemonHelperUnit(TestCase):
             self.signal_mock.SIGTSTP: None,
             self.signal_mock.SIGTTIN: None,
             self.signal_mock.SIGTERM: 'terminate'}
-        result = pep3143daemon.Daemon.defaultsignalmap()
+        result = pep3143daemon.daemon.default_signal_map()
         self.assertEqual(result, expected)
 
-# Test parentisinit()
+# Test parent_is_init()
 
-    def test_parentisinit_true(self):
+    def test_parent_is_init_true(self):
         self.os_mock.getppid.return_value = 1
-        self.assertTrue(pep3143daemon.Daemon.parentisinit())
+        self.assertTrue(pep3143daemon.daemon.parent_is_init())
 
-    def test_parentisinit_false(self):
+    def test_parent_is_init_false(self):
         self.os_mock.getppid.return_value = 12345
-        self.assertFalse(pep3143daemon.Daemon.parentisinit())
+        self.assertFalse(pep3143daemon.daemon.parent_is_init())
 
-# Test parentisinet()
+# Test parent_is_inet()
 
-    def test_parentisinet_true(self):
+    def test_parent_is_inet_true(self):
         self.sys_mock.__stdin__ = Mock()
-        self.assertTrue(pep3143daemon.Daemon.parentisinet())
+        self.assertTrue(pep3143daemon.daemon.parent_is_inet())
 
-    def test_parentisinet_true_sockerr(self):
+    def test_parent_is_inet_true_sockerr(self):
         self.sys_mock.__stdin__ = Mock()
         sock = Mock()
         sock.getsockopt.side_effect = OSError('other socket error')
         self.socket_mock.fromfd.return_value = sock
-        self.assertTrue(pep3143daemon.Daemon.parentisinet())
+        self.socket_mock.error = BaseException
+        self.assertTrue(pep3143daemon.daemon.parent_is_inet())
 
-    def test_parentisinet_false_ENOTSOCK(self):
+    def test_parent_is_inet_false_ENOTSOCK(self):
         self.sys_mock.__stdin__ = Mock()
         sock = Mock()
         sock.getsockopt.side_effect = OSError(errno.ENOTSOCK)
         self.socket_mock.fromfd.return_value = sock
-        self.assertFalse(pep3143daemon.Daemon.parentisinet())
+        self.socket_mock.error = BaseException
+        self.assertFalse(pep3143daemon.daemon.parent_is_inet())
 
-# test detachrequired()
+# test detach_required()
 
-    def test_detachrequired_false_parentisinet_true(self):
-        parentisinetpatcher = patch('pep3143daemon.Daemon.parentisinit', autospeck=True)
-        parentisinet_mock = parentisinetpatcher.start()
-        parentisinet_mock.return_value = True
+    def test_detach_required_false_parent_is_inet_true(self):
+        parent_is_inetpatcher = patch('pep3143daemon.daemon.parent_is_init', autospeck=True)
+        parent_is_inet_mock = parent_is_inetpatcher.start()
+        parent_is_inet_mock.return_value = True
 
-        parentisinitpatcher = patch('pep3143daemon.Daemon.parentisinet', autospeck=True)
-        parentisinit_mock = parentisinitpatcher.start()
-        parentisinit_mock.return_value = False
-        self.assertFalse(pep3143daemon.Daemon.detachrequired())
+        parent_is_initpatcher = patch('pep3143daemon.daemon.parent_is_inet', autospeck=True)
+        parent_is_init_mock = parent_is_initpatcher.start()
+        parent_is_init_mock.return_value = False
+        self.assertFalse(pep3143daemon.daemon.detach_required())
 
-    def test_detachrequired_false_parentisinit_true(self):
-        parentisinetpatcher = patch('pep3143daemon.Daemon.parentisinit', autospeck=True)
-        parentisinet_mock = parentisinetpatcher.start()
-        parentisinet_mock.return_value = False
+    def test_detach_required_false_parent_is_init_true(self):
+        parent_is_inetpatcher = patch('pep3143daemon.daemon.parent_is_init', autospeck=True)
+        parent_is_inet_mock = parent_is_inetpatcher.start()
+        parent_is_inet_mock.return_value = False
 
-        parentisinitpatcher = patch('pep3143daemon.Daemon.parentisinet', autospeck=True)
-        parentisinit_mock = parentisinitpatcher.start()
-        parentisinit_mock.return_value = True
-        self.assertFalse(pep3143daemon.Daemon.detachrequired())
+        parent_is_initpatcher = patch('pep3143daemon.daemon.parent_is_inet', autospeck=True)
+        parent_is_init_mock = parent_is_initpatcher.start()
+        parent_is_init_mock.return_value = True
+        self.assertFalse(pep3143daemon.daemon.detach_required())
 
-    def test_detachrequired_true(self):
-        parentisinetpatcher = patch('pep3143daemon.Daemon.parentisinit', autospeck=True)
-        parentisinet_mock = parentisinetpatcher.start()
-        parentisinet_mock.return_value = False
+    def test_detach_required_true(self):
+        parent_is_inetpatcher = patch('pep3143daemon.daemon.parent_is_init', autospeck=True)
+        parent_is_inet_mock = parent_is_inetpatcher.start()
+        parent_is_inet_mock.return_value = False
 
-        parentisinitpatcher = patch('pep3143daemon.Daemon.parentisinet', autospeck=True)
-        parentisinit_mock = parentisinitpatcher.start()
-        parentisinit_mock.return_value = False
-        self.assertTrue(pep3143daemon.Daemon.detachrequired())
+        parent_is_initpatcher = patch('pep3143daemon.daemon.parent_is_inet', autospeck=True)
+        parent_is_init_mock = parent_is_initpatcher.start()
+        parent_is_init_mock.return_value = False
+        self.assertTrue(pep3143daemon.daemon.detach_required())
 
 # Test redirect_stream()
     def test_redirect_stream_None(self):
         file = Mock()
         file.fileno.return_value = 123
-        pep3143daemon.Daemon.redirect_stream(file, None)
+        pep3143daemon.daemon.redirect_stream(file, None)
         self.os_mock.assert_has_calls(
             [call.open(self.os_mock.devnull, self.os_mock.O_RDWR),
              call.dup2(self.os_mock.open(), 123)])
@@ -473,5 +475,5 @@ class TestDaemonHelperUnit(TestCase):
         file1.fileno.return_value = 123
         file2 = Mock()
         file2.fileno.return_value = 321
-        pep3143daemon.Daemon.redirect_stream(file1, file2)
+        pep3143daemon.daemon.redirect_stream(file1, file2)
         self.os_mock.assert_has_calls([call.dup2(321, 123)])
