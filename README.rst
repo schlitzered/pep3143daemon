@@ -7,6 +7,11 @@ implementation to turn a Python process into a Unix daemon.
 The modules is based on the PEP 3143.
 
 
+Documentation
+=============
+
+http://pep3143daemon.readthedocs.org/
+
 Installing
 """"""""""
 
