@@ -30,7 +30,7 @@ class DaemonContext(object):
     on the instance.
 
     Altering attributes after open() is called, will have no effect.
-    In future versions, trying to do so, will raise a DaemonError.
+    In future versions, trying to do so, will may raise a DaemonError.
 
     :param chroot_directory:
         Full path to the directory that should be set as effective root
@@ -45,7 +45,7 @@ class DaemonContext(object):
     :type working_directory: str.
 
     :param umask:
-        File access creation mask for this after daemon start
+        File access creation mask for this daemon after start
     :type umask: int.
 
     :param uid:
@@ -63,11 +63,12 @@ class DaemonContext(object):
     :param detach_process:
         If True, do the double fork magic. If the process was started
         by inet or an init like program, you may don´t need to detach.
+        If not set, we try to figure out if forking is needed.
     :type detach_process: bool.
 
     :param files_preserve:
         List of integers, or objects with a fileno method, that
-        represent a files that should not be closed while daemoninzing.
+        represent files that should not be closed while daemoninzing.
     :type files_preserve: list
 
     :param pidfile:
@@ -100,6 +101,7 @@ class DaemonContext(object):
 
         """
         self._is_open = False
+        self._working_directory = None
         self.chroot_directory = chroot_directory
         self.umask = umask
         self.uid = uid if uid else os.getuid()
@@ -113,11 +115,7 @@ class DaemonContext(object):
         self.stdin = stdin
         self.stdout = stdout
         self.stderr = stderr
-        if chroot_directory and not \
-                working_directory.startswith(chroot_directory):
-            self.working_directory = chroot_directory + working_directory
-        else:
-            self.working_directory = working_directory
+        self.working_directory = working_directory
 
     def __enter__(self):
         """ Context Handler, wrapping self.open()
@@ -135,7 +133,7 @@ class DaemonContext(object):
         self.close()
 
     def _get_signal_handler(self, handler):
-        """ get the callback function for a signal handler
+        """ get the callback function for handler
 
         If the handler is None, returns signal.SIG_IGN.
         If the handler is a string, return the matching attribute of this
@@ -159,7 +157,7 @@ class DaemonContext(object):
         """ create a set of protected files
 
         create a set of files, based on self.files_preserve and
-        self.stdin, self,stdout and self.stderr, that shoud not get
+        self.stdin, self,stdout and self.stderr, that should not get
         closed while daemonizing.
 
         :return: set
@@ -178,7 +176,7 @@ class DaemonContext(object):
     def _signal_handler_map(self):
         """ Create the signal handler map
 
-        create a dictinary with signal:handler mapping based on
+        create a dictionary with signal:handler mapping based on
         self.signal_map
 
         :return: dict
@@ -188,9 +186,28 @@ class DaemonContext(object):
             result[signum] = self._get_signal_handler(handler)
         return result
 
-    def close(self):
-        """ Dummy function"""
-        pass
+    @property
+    def working_directory(self):
+        """ The working_directory property
+
+        :return: str
+        """
+        if self.chroot_directory and not \
+                self._working_directory.startswith(self.chroot_directory):
+            return self.chroot_directory + self._working_directory
+        else:
+            return self._working_directory
+
+    @working_directory.setter
+    def working_directory(self, value):
+        """ Set working directory
+
+        New value is ignored if already daemonized.
+
+        :param value: str
+        :return:
+        """
+        self._working_directory = value
 
     @property
     def is_open(self):
@@ -199,6 +216,10 @@ class DaemonContext(object):
         :return: bool
         """
         return self._is_open
+
+    def close(self):
+        """ Dummy function"""
+        pass
 
     def open(self):
         """ Daemonize this process
@@ -359,7 +380,7 @@ def parent_is_inet():
 
 
 def detach_required():
-    """ Check if detaching is requered
+    """ Check if detaching is required
 
     This is done by collecting the results of parent_is_inet and
     parent_is_init. If one of them is True, detaching, aka the daemoninzing,
