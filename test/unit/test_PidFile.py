@@ -29,7 +29,6 @@ class TestPidFileUnit(TestCase):
         self.assertIsNone(self.mockpidfile.pidfile)
         self.assertEqual(self.mockpidfile._pidfile, 'test.pid')
 
-
     def test_acquire(self):
         self.mockpidfile._pidfile = 'test.pid'
         pep3143daemon.pidfile.PidFile.acquire(self.mockpidfile)
@@ -48,6 +47,8 @@ class TestPidFileUnit(TestCase):
             call()
         ]
         )
+        self.mockpidfile.pidfile.seek.assert_called_with(0)
+        self.mockpidfile.pidfile.truncate.assert_called_with()
         self.mockpidfile.pidfile.write.assert_called_with(str(self.os_mock.getpid()) + '\n')
         self.mockpidfile.pidfile.flush.assert_called_with()
 
@@ -66,7 +67,5 @@ class TestPidFileUnit(TestCase):
     def test_release(self):
         self.mockpidfile._pidfile = 'test.pid'
         pep3143daemon.pidfile.PidFile.release(self.mockpidfile)
-
         self.mockpidfile.pidfile.close.assert_called_with()
-
         self.os_mock.remove.assert_called_with(self.mockpidfile._pidfile)

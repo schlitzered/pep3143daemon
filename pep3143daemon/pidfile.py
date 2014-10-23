@@ -52,15 +52,18 @@ class PidFile(object):
         :raise: SystemExit
         """
         try:
-            self.pidfile = open(self._pidfile, "a")
+            pidfile = open(self._pidfile, "a")
         except IOError as err:
             raise SystemExit(err)
         try:
-            fcntl.flock(self.pidfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(pidfile.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
             raise SystemExit('Already running according to ' + self._pidfile)
-        self.pidfile.write(str(os.getpid())+'\n')
-        self.pidfile.flush()
+        pidfile.seek(0)
+        pidfile.truncate()
+        pidfile.write(str(os.getpid())+'\n')
+        pidfile.flush()
+        self.pidfile = pidfile
         atexit.register(self.release)
 
     def release(self):
