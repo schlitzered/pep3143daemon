@@ -252,13 +252,13 @@ class DaemonContext(object):
         if self.detach_process:
             try:
                 if os.fork() > 0:
-                    sys.exit()
+                    os._exit(0)
             except OSError as err:
                 raise DaemonError('First fork failed: {0}'.format(err))
             os.setsid()
             try:
                 if os.fork() > 0:
-                    sys.exit()
+                    os._exit(0)
             except OSError as err:
                 raise DaemonError('Second fork failed: {0}'.format(err))
 
