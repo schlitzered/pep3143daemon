@@ -1,10 +1,9 @@
 __author__ = 'schlitzer'
 
 from unittest import TestCase
-from unittest.mock import Mock, MagicMock, PropertyMock, call, patch
+from unittest.mock import Mock, MagicMock, call, patch
 import pep3143daemon.daemon
 import errno
-import sys
 
 
 class LowLevelExit(SystemExit):
@@ -30,14 +29,14 @@ class TestDaemonContextUnit(TestCase):
         self.os_mock.getuid.return_value = 12345
         self.os_mock.getgid.return_value = 54321
 
-        resourcepatcher = patch('pep3143daemon.daemon.resource', autospeck = True)
+        resourcepatcher = patch('pep3143daemon.daemon.resource', autospeck=True)
         self.resource_mock = resourcepatcher.start()
         self.resource_mock.RLIMIT_NOFILE = 2048
         self.resource_mock.RLIM_INFINITY = True
 
         signalpatcher = patch('pep3143daemon.daemon.signal', autospeck=True)
         self.signal_mock = signalpatcher.start()
-        self.signal_mock.SIGTERM.return_value=15
+        self.signal_mock.SIGTERM.return_value = 15
 
         socketpatcher = patch('pep3143daemon.daemon.socket', autospeck=True)
         self.socket_mock = socketpatcher.start()
@@ -139,7 +138,7 @@ class TestDaemonContextUnit(TestCase):
         self.daemoncontext.stdin = file1
         self.daemoncontext.files_preserve = [file2, 2, 1, 4, 15]
         result = self.daemoncontext._files_preserve
-        self.assertEqual(result, set((1, 2, 4 ,15, 16)))
+        self.assertEqual(result, set((1, 2, 4, 15, 16)))
 
 # Test DaemonContext._get_signal_handler()
     def test__get_signal_handler_None(self):
@@ -173,7 +172,6 @@ class TestDaemonContextUnit(TestCase):
 
     def test__is_open_def_should_fail(self):
         self.assertRaises(AttributeError, delattr, self.daemoncontext, 'is_open')
-
 
 # Test DaemonContext.signal_handler_map
     def test__signal_handler_map(self):
@@ -336,6 +334,7 @@ class TestDaemonContextUnit(TestCase):
             [call.acquire()]
         )
 
+
 class TestDaemonHelperUnit(TestCase):
     def setUp(self):
         ospatcher = patch('pep3143daemon.daemon.os', autospeck=True)
@@ -348,7 +347,7 @@ class TestDaemonHelperUnit(TestCase):
 
         signalpatcher = patch('pep3143daemon.daemon.signal', autospeck=True)
         self.signal_mock = signalpatcher.start()
-        self.signal_mock.SIGTERM.return_value=15
+        self.signal_mock.SIGTERM.return_value = 15
 
         socketpatcher = patch('pep3143daemon.daemon.socket', autospeck=True)
         self.socket_mock = socketpatcher.start()
@@ -372,12 +371,12 @@ class TestDaemonHelperUnit(TestCase):
                  call.close(8),
                  call.close(10),
                  call.close(11)]
-        pep3143daemon.daemon.close_filenos(set((1,2,4,9)))
+        pep3143daemon.daemon.close_filenos(set((1, 2, 4, 9)))
         self.os_mock.assert_has_calls(calls)
 
     def test_close_filenos_maxfd_unlimited(self):
         self.resource_mock.getrlimit.return_value = (12, self.resource_mock.RLIM_INFINITY)
-        pep3143daemon.daemon.close_filenos(set((1,2,4,9)))
+        pep3143daemon.daemon.close_filenos(set((1, 2, 4, 9)))
         self.assertEqual(self.os_mock.close.call_count, 4092)
 
 # Test default_signal_map()

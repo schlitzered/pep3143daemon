@@ -12,10 +12,7 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
-
-import sys
-import os
-
+#
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -201,8 +198,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'pep3143daemon.tex', 'pep3143daemon Documentation',
-   'Stephan Schultchen', 'manual'),
+    ('index', 'pep3143daemon.tex', 'pep3143daemon Documentation',
+     'Stephan Schultchen', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -245,9 +242,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'pep3143daemon', 'pep3143daemon Documentation',
-   'Stephan Schultchen', 'pep3143daemon', 'One line description of project.',
-   'Miscellaneous'),
+    ('index', 'pep3143daemon', 'pep3143daemon Documentation',
+     'Stephan Schultchen', 'pep3143daemon', 'One line description of project.',
+     'Miscellaneous'),
 ]
 
 # Documents to append as an appendix to all manuals.
