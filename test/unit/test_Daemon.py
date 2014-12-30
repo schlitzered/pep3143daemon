@@ -7,6 +7,10 @@ import errno
 import sys
 
 
+class LowLevelExit(SystemExit):
+    pass
+
+
 class TestDaemonContextUnit(TestCase):
     def setUp(self):
         parent_is_inetpatcher = patch('pep3143daemon.daemon.parent_is_init', autospeck=True)
@@ -191,7 +195,7 @@ class TestDaemonContextUnit(TestCase):
 # Test DaemonContext.open()
     def test_open_first_fork_parent_second_fork_parent(self):
         self.os_mock.fork = MagicMock(side_effect=[123, 1123])
-        self.sys_mock.exit.side_effect = SystemExit
+        self.os_mock._exit.side_effect = LowLevelExit
         self.daemoncontext.pidfile = Mock()
         self.daemoncontext.signal_map = {
             self.signal_mock.SIGTSTP: None,
@@ -199,7 +203,7 @@ class TestDaemonContextUnit(TestCase):
             self.signal_mock.SIGTTOU: None,
             self.signal_mock.SIGTERM: 'terminate'}
 
-        with self.assertRaises(SystemExit) as err:
+        with self.assertRaises(LowLevelExit) as err:
             self.daemoncontext.open()
 
         self.os_mock.assert_has_calls(
@@ -215,7 +219,7 @@ class TestDaemonContextUnit(TestCase):
 
     def test_open_first_fork_child_second_fork_parent(self):
         self.os_mock.fork = MagicMock(side_effect=[0, 1123])
-        self.sys_mock.exit.side_effect = SystemExit
+        self.os_mock._exit.side_effect = LowLevelExit
         self.daemoncontext.pidfile = Mock()
         self.daemoncontext.signal_map = {
             self.signal_mock.SIGTSTP: None,
@@ -223,7 +227,7 @@ class TestDaemonContextUnit(TestCase):
             self.signal_mock.SIGTTOU: None,
             self.signal_mock.SIGTERM: 'terminate'}
 
-        with self.assertRaises(SystemExit) as err:
+        with self.assertRaises(LowLevelExit) as err:
             self.daemoncontext.open()
 
         self.os_mock.assert_has_calls(
