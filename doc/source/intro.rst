@@ -12,11 +12,11 @@ of incompatibilities with newer version of external libraries.
 The goal of pep3143daemon is to create a complete, and working PEP 3143
 library. For this reason, also a working PidFile class is bundled with this Package.
 
-The tests, written for this package, where implemented, using the Python 3
-unittest framework. I did not spend any time making the tests run on Python 2.
-Nevertheless, the lib was manually tested with python 2.6 and 2.7.
+The package only depend on Python build in modules.
 
-Patches to make the tests run under python 2.6 / 2.7 are welcome!
+This package is tested withPython 3.3/3.4 and Python 2.7, using the
+unittest framework, and additionally for python 2.7 with the mock library,
+which is part of unittest in Python 3.
 
 
 Differences
@@ -28,7 +28,7 @@ The main difference is the DaemonContext.close() method.
 
 The close method of DeamonContext is implemented as a dummy method.
 According to the PEP, this method should mark the instance as closed.
-It would also call the __exit__ method of a PidFile context object,
+It would also call the __exit__ method of a PidFile context manager,
 if one is attached.
 
 The close method is not implemented, because it is not possible to close a

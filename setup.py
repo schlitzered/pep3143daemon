@@ -4,7 +4,7 @@ import pep3143daemon
 
 setup(
     name='pep3143daemon',
-    version='0.0.4',
+    version='0.0.5',
     description='Implementation of PEP 3143, a unix daemon',
     long_description=pep3143daemon.__doc__,
     packages=['pep3143daemon'],
@@ -12,7 +12,6 @@ setup(
     license='MIT',
     author='schlitzer',
     author_email='stephan.schultchen@gmail.com',
-    install_requires=['six'],
     test_suite='test',
     platforms='posix',
     classifiers=[

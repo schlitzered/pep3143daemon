@@ -1,7 +1,11 @@
 __author__ = 'schlitzer'
 
 from unittest import TestCase
-from unittest.mock import Mock, MagicMock, call, patch
+try:
+    from unittest.mock import Mock, MagicMock, call, patch
+except ImportError:
+    from mock import Mock, MagicMock, call, patch
+
 import pep3143daemon.daemon
 import errno
 
@@ -44,31 +48,31 @@ class TestDaemonContextUnit(TestCase):
         syspatcher = patch('pep3143daemon.daemon.sys', autospeck=False)
         self.sys_mock = syspatcher.start()
 
-        self.addCleanup(patch.stopall)
-
         self.daemoncontext = pep3143daemon.daemon.DaemonContext()
+
+        self.addCleanup(patch.stopall)
 
 # Test DaemonContext.__init__()
     def test___init__defaultargs(self):
-        pep3143daemon.daemon.DaemonContext.__init__(self.daemoncontext)
-        self.assertIsNone(self.daemoncontext.files_preserve)
-        self.assertIsNone(self.daemoncontext.chroot_directory)
-        self.assertEqual(self.daemoncontext.working_directory, '/')
-        self.assertEqual(self.daemoncontext.umask, 0)
-        self.assertIsNone(self.daemoncontext.pidfile)
+        daemon = pep3143daemon.daemon.DaemonContext()
+        self.assertIsNone(daemon.files_preserve)
+        self.assertIsNone(daemon.chroot_directory)
+        self.assertEqual(daemon.working_directory, '/')
+        self.assertEqual(daemon.umask, 0)
+        self.assertIsNone(daemon.pidfile)
         detach_required = pep3143daemon.daemon.detach_required()
-        self.assertEqual(self.daemoncontext.detach_process, detach_required)
+        self.assertEqual(daemon.detach_process, detach_required)
         signal_map = pep3143daemon.daemon.default_signal_map()
-        self.assertEqual(self.daemoncontext.signal_map, signal_map)
-        self.assertEqual(self.daemoncontext.uid, self.os_mock.getuid())
+        self.assertEqual(daemon.signal_map, signal_map)
+        self.assertEqual(daemon.uid, self.os_mock.getuid())
         self.os_mock.getuid.assert_called_with()
-        self.assertEqual(self.daemoncontext.gid, self.os_mock.getgid())
+        self.assertEqual(daemon.gid, self.os_mock.getgid())
         self.os_mock.getgid.assert_called_with()
-        self.assertTrue(self.daemoncontext.prevent_core)
-        self.assertIsNone(self.daemoncontext.stdin)
-        self.assertIsNone(self.daemoncontext.stdout)
-        self.assertIsNone(self.daemoncontext.stderr)
-        self.assertFalse(self.daemoncontext._is_open)
+        self.assertTrue(daemon.prevent_core)
+        self.assertIsNone(daemon.stdin)
+        self.assertIsNone(daemon.stdout)
+        self.assertIsNone(daemon.stderr)
+        self.assertFalse(daemon._is_open)
 
     def test___init__customargs(self):
         files_preserve = Mock()
@@ -85,8 +89,7 @@ class TestDaemonContextUnit(TestCase):
         stdout = Mock()
         stderr = Mock()
 
-        pep3143daemon.daemon.DaemonContext.__init__(
-            self.daemoncontext,
+        daemon = pep3143daemon.daemon.DaemonContext(
             files_preserve=files_preserve,
             chroot_directory=chroot_directory,
             working_directory=working_directory,
@@ -101,33 +104,31 @@ class TestDaemonContextUnit(TestCase):
             stdout=stdout,
             stderr=stderr)
 
-        self.assertEqual(self.daemoncontext.files_preserve, files_preserve)
-        self.assertEqual(self.daemoncontext.chroot_directory, chroot_directory)
-        self.assertEqual(self.daemoncontext.working_directory, working_directory)
-        self.assertEqual(self.daemoncontext.umask, umask)
-        self.assertEqual(self.daemoncontext.pidfile, pidfile)
-        self.assertEqual(self.daemoncontext.detach_process, detach_process)
-        self.assertEqual(self.daemoncontext.signal_map, signal_map)
-        self.assertEqual(self.daemoncontext.uid, uid)
-        self.assertEqual(self.daemoncontext.gid, gid)
-        self.assertEqual(self.daemoncontext.prevent_core, prevent_core)
-        self.assertEqual(self.daemoncontext.stdin, stdin)
-        self.assertEqual(self.daemoncontext.stdout, stdout)
-        self.assertEqual(self.daemoncontext.stderr, stderr)
+        self.assertEqual(daemon.files_preserve, files_preserve)
+        self.assertEqual(daemon.chroot_directory, chroot_directory)
+        self.assertEqual(daemon.working_directory, working_directory)
+        self.assertEqual(daemon.umask, umask)
+        self.assertEqual(daemon.pidfile, pidfile)
+        self.assertEqual(daemon.detach_process, detach_process)
+        self.assertEqual(daemon.signal_map, signal_map)
+        self.assertEqual(daemon.uid, uid)
+        self.assertEqual(daemon.gid, gid)
+        self.assertEqual(daemon.prevent_core, prevent_core)
+        self.assertEqual(daemon.stdin, stdin)
+        self.assertEqual(daemon.stdout, stdout)
+        self.assertEqual(daemon.stderr, stderr)
 
     def test___init__chroot_substring_of_workdir(self):
-        pep3143daemon.daemon.DaemonContext.__init__(
-            self.daemoncontext,
+        daemon = pep3143daemon.daemon.DaemonContext(
             working_directory='/foo/bar/baz',
             chroot_directory='/foo/bar')
-        self.assertEqual(self.daemoncontext.working_directory, '/foo/bar/baz')
+        self.assertEqual(daemon.working_directory, '/foo/bar/baz')
 
     def test___init__chroot_not_substring_of_workdir(self):
-        pep3143daemon.daemon.DaemonContext.__init__(
-            self.daemoncontext,
+        daemon = pep3143daemon.daemon.DaemonContext(
             working_directory='/baz',
             chroot_directory='/foo/bar')
-        self.assertEqual(self.daemoncontext.working_directory, '/foo/bar/baz')
+        self.assertEqual(daemon.working_directory, '/foo/bar/baz')
 
 # Test DaemonContext._exclude_filenos
     def test_exclude_filenos(self):
