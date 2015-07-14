@@ -12,7 +12,7 @@ and terminates after two minutes::
 
 
     counter = 60
-    pid='/tmp/pep3134daemon_example.pid'
+    pid='/tmp/pep3143daemon_example.pid'
 
     pidfile = PidFile(pid)
     daemon = DaemonContext(pidfile=pidfile)
@@ -24,12 +24,12 @@ and terminates after two minutes::
 
     daemon.open()
 
-    syslog.syslog('pep3134daemon_example: daemonized')
+    syslog.syslog('pep3143daemon_example: daemonized')
 
     while counter > 0:
-        syslog.syslog('pep3134daemon_example: still running')
+        syslog.syslog('pep3143daemon_example: still running')
         counter -= 1
-        syslog.syslog('pep3134daemon_example: counter: {0}'.format(counter))
+        syslog.syslog('pep3143daemon_example: counter: {0}'.format(counter))
         time.sleep(2)
 
-    syslog.syslog('pep3134daemon_example: terminating...')
+    syslog.syslog('pep3143daemon_example: terminating...')
