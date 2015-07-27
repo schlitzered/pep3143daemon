@@ -75,19 +75,19 @@ class TestDaemonContextUnit(TestCase):
         self.assertFalse(daemon._is_open)
 
     def test___init__customargs(self):
-        files_preserve = Mock()
-        chroot_directory = Mock()
-        working_directory = Mock()
-        umask = Mock()
+        files_preserve = [1, 3, 5]
+        chroot_directory = '/tmp/'
+        working_directory = '/tmp/bin/'
+        umask = '0022'
         pidfile = Mock()
-        detach_process = Mock()
+        detach_process = False
         signal_map = Mock()
-        uid = Mock()
-        gid = Mock()
-        prevent_core = Mock()
-        stdin = Mock()
-        stdout = Mock()
-        stderr = Mock()
+        uid = 123
+        gid = 123
+        prevent_core = True
+        stdin = None
+        stdout = None
+        stderr = None
 
         daemon = pep3143daemon.daemon.DaemonContext(
             files_preserve=files_preserve,

@@ -112,8 +112,10 @@ class DaemonContext(object):
         self.umask = umask
         self.uid = uid if uid else os.getuid()
         self.gid = gid if gid else os.getgid()
-        self.detach_process = detach_process if detach_process \
-            else detach_required()
+        if detach_process is None:
+            self.detach_process = detach_required()
+        else:
+            self.detach_process = detach_process
         self.signal_map = signal_map if signal_map else default_signal_map()
         self.files_preserve = files_preserve
         self.pidfile = pidfile
